@@ -511,6 +511,19 @@ class StorageStateLoadedEvent(BaseEvent):
 
 
 # ============================================================================
+# Recorder Events
+# ============================================================================
+
+
+class RecordableEvent(BaseEvent):
+    """An event that can be recorded as a test step."""
+
+    action: str
+    params: dict[str, Any]
+    element: EnhancedDOMTreeNode | None = None
+
+
+# ============================================================================
 # File Download Events
 # ============================================================================
 

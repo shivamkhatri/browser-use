@@ -343,6 +343,7 @@ class BrowserSession(BaseModel):
 	_screenshot_watchdog: Any | None = PrivateAttr(default=None)
 	_permissions_watchdog: Any | None = PrivateAttr(default=None)
 	_recording_watchdog: Any | None = PrivateAttr(default=None)
+	_interaction_recorder_watchdog: Any | None = PrivateAttr(default=None)
 
 	_logger: Any = PrivateAttr(default=None)
 
@@ -1096,8 +1097,25 @@ class BrowserSession(BaseModel):
 		self._recording_watchdog = RecordingWatchdog(event_bus=self.event_bus, browser_session=self)
 		self._recording_watchdog.attach_to_session()
 
+		# Initialize InteractionRecorderWatchdog
+		from browser_use.browser.watchdogs.interaction_recorder_watchdog import InteractionRecorderWatchdog
+		InteractionRecorderWatchdog.model_rebuild()
+		self._interaction_recorder_watchdog = InteractionRecorderWatchdog(event_bus=self.event_bus, browser_session=self)
+		self._interaction_recorder_watchdog.attach_to_session()
+
+
 		# Mark watchdogs as attached to prevent duplicate attachment
 		self._watchdogs_attached = True
+
+	def start_recording(self) -> None:
+		"""Start recording user interactions."""
+		if self._interaction_recorder_watchdog:
+			self._interaction_recorder_watchdog.start_recording()
+
+	def stop_recording(self) -> None:
+		"""Stop recording user interactions."""
+		if self._interaction_recorder_watchdog:
+			self._interaction_recorder_watchdog.stop_recording()
 
 	async def connect(self, cdp_url: str | None = None) -> Self:
 		"""Connect to a remote chromium-based browser via CDP using cdp-use.
